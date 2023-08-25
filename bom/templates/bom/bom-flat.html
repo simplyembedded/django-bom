@@ -8,6 +8,9 @@
     </div>
     <div class="col s6 right-align">
         {% if manage and profile.role == 'A' %}
+            <a class="btn waves-effect waves-green grey lighten-4 btn-flat green-text"
+               href="{% url 'bom:sync-bom-to-odoo' part_id=part.id part_revision_id=part_revision_id %}"
+               onclick="return confirm('Sync bom of {{ part.full_part_number }} to Odoo?')">Sync to Odoo</a>
             <a class="waves-effect waves-green grey lighten-4 btn-flat red-text"
                href="{% url 'bom:part-remove-all-subparts' part_id=part.id part_revision_id=part_revision_id %}"
                onclick="return confirm('Are you sure you want to remove ALL subparts from {{ part.full_part_number }}?')">Remove All Subparts

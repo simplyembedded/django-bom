@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import logging
 from math import ceil
+from collections import defaultdict
+
 
 from django.contrib.auth.models import Group, User
 from django.core.cache import cache
@@ -399,11 +401,14 @@ class PartClassWorkflowStateTransition(models.Model):
 class PartWorkflowInstance(models.Model):
     part = models.ForeignKey(Part, null=False, on_delete=models.CASCADE, default=None)
     workflow = models.ForeignKey(PartClassWorkflow, on_delete=models.CASCADE, default=None)
-    current_state = models.ForeignKey(PartClassWorkflowState, on_delete=models.CASCADE, default=None)
-    currently_assigned_users = models.ManyToManyField(User, null=True, blank=True)
+    current_state = models.ForeignKey(PartClassWorkflowState, on_delete=models.CASCADE, default=None, null=True)
+    currently_assigned_users = models.ManyToManyField(User, null=True, blank=True)   # TODO error occurs here
 
     def __str__(self):
         return self.workflow.name
+
+
+
 
 class PartClassWorkflowCompletedTransition(models.Model):
     transition = models.ForeignKey(PartClassWorkflowStateTransition, on_delete=models.CASCADE, null=True, default=None)
@@ -428,7 +433,7 @@ class PartClassWorkflowCompletedTransition(models.Model):
 
 
 # Below are attributes of a part that can be changed, but it's important to trace the change over time
-class PartRevision(models.Model):
+class PartRevision(models.Model):   
     part = models.ForeignKey(Part, on_delete=models.CASCADE, db_index=True)
     timestamp = models.DateTimeField(default=timezone.now)
     configuration = models.CharField(max_length=1, choices=CONFIGURATION_TYPES, default='W')
@@ -436,7 +441,8 @@ class PartRevision(models.Model):
     assembly = models.ForeignKey('Assembly', default=None, null=True, on_delete=models.CASCADE, db_index=True)
     displayable_synopsis = models.CharField(editable=False, default="", null=True, blank=True, max_length=255, db_index=True)
     searchable_synopsis = models.CharField(editable=False, default="", null=True, blank=True, max_length=255, db_index=True)
-
+    
+    
     class Meta:
         unique_together = (('part', 'revision'),)
         ordering = ['part']
@@ -673,6 +679,7 @@ class PartRevision(models.Model):
 class AssemblySubparts(models.Model):
     assembly = models.ForeignKey('Assembly', models.CASCADE)
     subpart = models.ForeignKey('Subpart', models.CASCADE)
+
 
     class Meta:
         db_table = 'bom_assembly_subparts'

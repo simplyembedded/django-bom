@@ -1,6 +1,8 @@
 import codecs
 import csv
 import logging
+import xmlrpc
+
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
@@ -1210,7 +1212,7 @@ class UploadBOMForm(forms.Form):
             except Part.DoesNotExist:
                 validation_error = forms.ValidationError(("No part found with given parent part number {}.".format(parent_part_number)), code='invalid')
                 self.add_error('parent_part_number', validation_error)
-
+                
         return parent_part_number
 
 
@@ -1410,10 +1412,18 @@ class BOMCSVForm(forms.Form):
 
                     AssemblySubparts.objects.get_or_create(assembly=parent_part_revision.assembly, subpart=new_subpart)
 
-                    info_msg = f"Added subpart {part_number} on row {row_count} "
+                    info_msg = f"Added subpart {part_number} on row {row_count} "     #TODO get part_number and self.parent_part
                     if reference:
                         info_msg += f"with reference designators {reference} "
                     info_msg += f"to parent part {self.parent_part}."
+                    
+                    # product_data = {
+                    #     'name': 'Product name',
+                    #     'description' : info_msg
+                    # }
+                    
+                    # models.execute_kw(db, uid, password, 'product.template', 'create', [product_data]) #TODO code below
+                    
                     self.successes.append(info_msg)
 
                 else:

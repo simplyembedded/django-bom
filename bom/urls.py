@@ -41,6 +41,7 @@ bom_patterns = [
     path('part/<int:part_id>/rev/<int:part_revision_id>/release/', views.part_revision_release, name='part-revision-release'),
     path('part/<int:part_id>/rev/<int:part_revision_id>/revert/', views.part_revision_revert, name='part-revision-revert'),
     path('part/<int:part_id>/rev/<int:part_revision_id>/remove-all-subparts/', views.remove_all_subparts, name='part-remove-all-subparts'),
+    path('part/<int:part_id>/rev/<int:part_revision_id>/sync-bom-to-odoo/', views.sync_bom_to_odoo, name='sync-bom-to-odoo'),
     path('part/<int:part_id>/rev/<int:part_revision_id>/edit-subpart/<int:subpart_id>', views.edit_subpart, name='part-edit-subpart'),
     path('part/<int:part_id>/rev/<int:part_revision_id>/remove-subpart/<int:subpart_id>/', views.remove_subpart, name='part-remove-subpart'),
     path('part/<int:part_id>/rev/<int:part_revision_id>/manage-bom/', views.manage_bom, name='part-manage-bom'),
