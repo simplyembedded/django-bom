@@ -691,7 +691,7 @@ class Subpart(models.Model):
     count = models.FloatField(default=1, validators=[MinValueValidator(0)])
     reference = models.TextField(default='', blank=True, null=True)
     do_not_load = models.BooleanField(default=False, verbose_name='Do Not Load')
-    alternates = models.ManyToManyField('PartRevision')
+    alternates = models.ManyToManyField('PartRevision', blank=True)
 
     def save(self, *args, **kwargs):
         # Make sure reference designators are formated as a string with comma-separated fields.
