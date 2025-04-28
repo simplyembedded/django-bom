@@ -1,10 +1,47 @@
 import xmlrpc.client
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import pre_save, post_save, pre_delete
 from django.dispatch import receiver, Signal
 from .models import Part, PartRevision, ManufacturerPart, PartClass, Subpart, Assembly, AssemblySubparts
 from .settings import ODOO_DB, ODOO_COMMON_URL, ODOO_PASSWORD, ODOO_URL, ODOO_USERNAME, ODOO_OBJECT_URL
 from .odoo_comm import authenticate_odoo, odoo_search_product_by_name, odoo_get_or_create_all_parent_category, odoo_get_or_create_category_id, odoo_create_or_update_product, get_odoo_product_details, account_for_001_010
+from django.core.mail import send_mail
 
+pcba_code = '010'
+
+def get_affected_part_revs(assemblies):
+    affected_part_revs = []
+    for assembly in assemblies:
+        part_revs = PartRevision.objects.filter(assembly=assembly)
+        for part_rev in part_revs:
+            if part_rev.part.number_class.code == pcba_code:
+                affected_part_revs.append(str(part_rev))
+    return affected_part_revs
+
+def send_bom_change_notification(subpart, affected_part_revs, deleted=False):
+    subject = '[IndaBOM] PCBA BOM Change Notification'
+    message = f'Subpart "{subpart}" was {"changed" if not deleted else "deleted"} in IndaBOM, ' \
+                + 'triggering an update for the following BOM(s):\n' \
+                + "\n    " \
+                + "\n    ".join(affected_part_revs) \
+                + "\n\n\n\n Simply Embedded"
+    # Who should receive these notifications?
+    recipients = ['']
+    send_mail(subject, message, from_email='admin@simplyembedded.ca', 
+            recipient_list=recipients, fail_silently=True)
+
+@receiver(pre_delete, sender=Subpart)
+def pcba_bom_subpart_delete_notification(sender, instance, **kwargs):
+    assembly_queryset = Assembly.objects.filter(subparts=instance)
+    affected_part_revs = get_affected_part_revs(assembly_queryset)
+    if affected_part_revs:
+        send_bom_change_notification(instance, affected_part_revs, deleted=True)
+
+@receiver(pre_save, sender=Subpart)
+def pcba_bom_subpart_change_notification(sender, instance, **kwargs):
+    assembly_queryset = Assembly.objects.filter(subparts=instance)
+    affected_part_revs = get_affected_part_revs(assembly_queryset)
+    if affected_part_revs:
+        send_bom_change_notification(instance, affected_part_revs)
 
 @receiver(post_save, sender=Part)
 def update_create_part_odoo(sender, instance, **kwargs):   #create/update product
@@ -135,24 +172,3 @@ def create_class_in_odoo(sender, instance, **kwargs):
     
     else:
         return
-
-    
-
-
-    
-
-
-    
-    
-
-
-    
-     
-        
-    
-    
-    
-    
-
-
-
