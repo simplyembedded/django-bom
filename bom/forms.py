@@ -1280,7 +1280,7 @@ class BOMCSVForm(forms.Form):
                     part_dict[hdr] = row[idx]
 
                 dnp = csv_headers.get_val_from_row(part_dict, 'dnp')
-                do_not_load = dnp in ['y', 'x', 'dnp', 'dnl', 'yes', 'true', ]
+                do_not_load = dnp in ['y', 'x', 'dnp', 'dnl', 'yes', 'true', 'DNP']
                 part_number = csv_headers.get_val_from_row(part_dict, 'part_number')
                 revision = csv_headers.get_val_from_row(part_dict, 'revision')
                 mpn = csv_headers.get_val_from_row(part_dict, 'mpn')
