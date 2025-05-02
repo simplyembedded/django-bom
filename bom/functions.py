@@ -19,6 +19,15 @@ from bom.forms import (
     CreatePartClassWorkflowTransitionForm,
 )
 
+def send_pcba_bom_update(subpart, part_revision, update_type):
+    subject = '[IndaBOM] PCBA BOM Change Notification'
+    message = f'BOM for PCBA "{part_revision}" has been modified.' \
+                + f'The associated subpart is "{subpart}". Update type: {update_type}.' \
+                + "\n\n\n\n Simply Embedded"
+    recipients = ['']
+    send_mail(subject, message, from_email='admin@simplyembedded.ca', 
+            recipient_list=recipients, fail_silently=True)
+
 def validate_transition_forms(request, workflow_form):
     result = {
         'has_final_state': False,
