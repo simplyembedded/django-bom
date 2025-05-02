@@ -95,6 +95,7 @@ from bom import functions
 
 
 logger = logging.getLogger(__name__)
+PCBA_NUMBER_CLASS = '010'
 
 def form_error_messages(form_errors) -> [str]:
     error_messages = []
@@ -1283,6 +1284,8 @@ def add_subpart(request, part_id, part_revision_id):
 
                 AssemblySubparts.objects.create(assembly=part_revision.assembly, subpart=new_part)
 
+            if part_revision.part.number_class.code == PCBA_NUMBER_CLASS:
+                functions.send_pcba_bom_update(subpart_part, part_revision, 'Add')
             info_msg = "Added subpart "
             if reference:
                 info_msg += ' ' + reference
@@ -1303,6 +1306,9 @@ def remove_subpart(request, part_id, part_revision_id, subpart_id):
 
     subpart = get_object_or_404(Subpart, pk=subpart_id)
     subpart.delete()
+    part_revision = get_object_or_404(PartRevision, pk=part_revision_id)
+    if part_revision.part.number_class.code == PCBA_NUMBER_CLASS:
+        functions.send_pcba_bom_update(subpart, part_revision, 'Delete')
     return HttpResponseRedirect(
         reverse('bom:part-manage-bom', kwargs={'part_id': part_id, 'part_revision_id': part_revision_id}))
 
@@ -1349,6 +1355,9 @@ def edit_subpart(request, part_id, part_revision_id, subpart_id):
             reference_list = listify_string(form.cleaned_data['reference'])
             count = form.cleaned_data['count']
             form.save()
+            part_revision = get_object_or_404(PartRevision, pk=part_revision_id)
+            if part_revision.part.number_class.code == PCBA_NUMBER_CLASS:
+                functions.send_pcba_bom_update(subpart, part_revision, 'Edit')
             return HttpResponseRedirect(reverse('bom:part-manage-bom', kwargs={'part_id': part_id, 'part_revision_id': part_revision_id}))
         else:
             return TemplateResponse(request, 'bom/bom-form.html', locals())
@@ -1367,6 +1376,8 @@ def remove_all_subparts(request, part_id, part_revision_id):
 
     part_revision = get_object_or_404(PartRevision, pk=part_revision_id)
     part_revision.assembly.subparts.all().delete()
+    if part_revision.part.number_class.code == PCBA_NUMBER_CLASS:
+        functions.send_pcba_bom_update('(All)', part_revision, 'Delete All')
 
     return HttpResponseRedirect(reverse('bom:part-manage-bom', kwargs={'part_id': part_id, 'part_revision_id': part_revision_id}))
 
